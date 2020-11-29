@@ -1,10 +1,16 @@
 import json
+import lxml.etree as et
+import os
+import sys
+import pandas as pd
 
 class Main:
 
     @staticmethod
     def run():
-        print("Hello World...")
+        main = Main()
+        main.process(pd.read_csv(sys.argv[1])).to_csv("metadata.csv")
+        main.create_citation_graph(sys.argv[2]).to_csv("citation_graph.csv")
 
     def _get_keywords(self, body):
         prefix = "Category / Keywords: "
@@ -53,3 +59,24 @@ class Main:
         articles = articles.drop(['article-href', 'body', 'extension', 'web-scraper-order', 'web-scraper-start-url', 'article'], axis=1)
         return articles
 
+
+    def process_citation(self, root):
+        # root = et.fromstring(xml_content)
+        return map(lambda x: self._cleanup_title(x.text), root.xpath(".//article-title"))
+
+
+    def create_citation_graph(self, path):
+        all_deps = list()
+        for filename in os.listdir(path):
+            if filename.endswith(".cermxml"):
+                root = et.parse(os.path.join(path, filename)).getroot()
+                dep = list(self.process_citation(root))
+                if len(dep) <= 1:
+                    continue
+                all_deps.append({
+                    "title": dep[0],
+                    "refs": dep[1:],
+                    })
+            else:
+                continue
+        return pd.DataFrame(all_deps)
