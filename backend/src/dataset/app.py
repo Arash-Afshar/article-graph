@@ -8,6 +8,18 @@ class Main:
 
     @staticmethod
     def run():
+        """
+        Arguments: two positional arguments
+        - First: a csv file with the list of iacr metadata.
+        - Second: a directory containing all the cermxml files.
+
+        Example command:
+        $ python -m src.dataset ../resources/iacr.csv ../resources/cermxml/
+
+        Outputs:
+        1. metadata.csv the process version of iacr.csv.
+        2. citation_graph.csv the processed version of the cermxml files.
+        """
         main = Main()
         main.process(pd.read_csv(sys.argv[1])).to_csv("metadata.csv")
         main.create_citation_graph(sys.argv[2]).to_csv("citation_graph.csv")
